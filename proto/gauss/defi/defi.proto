@@ -1,0 +1,314 @@
+syntax = "proto3";
+package gauss.defi;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "tendermint/types/types.proto";
+
+option go_package = "github.com/gauss/gauss/v4/x/defi/types";
+
+// HistoricalInfo contains header and defi information for a given block.
+// It is stored as part of defi module's state, which persists the `n` most
+// recent HistoricalInfo
+// (`n` is set by the defi module's `historical_entries` parameter).
+message HistoricalInfo {
+  tendermint.types.Header header = 1 [(gogoproto.nullable) = false];
+  repeated Defi      defiset = 2 [(gogoproto.nullable) = false];
+}
+
+// Description defines a defi description.
+message Description {
+  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  // moniker defines a human-readable name for the defi.
+  string moniker          = 1;
+  // identity defines an optional identity signature (ex. UPort or Keybase).
+  string identity         = 2;
+  // website defines an optional website link.
+  string website          = 3;
+  // security_contact defines an optional email for security contact.
+  string security_contact = 4 [(gogoproto.moretags) = "yaml:\"security_contact\""];
+  // details define other optional details.
+  string details          = 5;
+}
+
+// Defi defines a defi, together with the total amount of the
+// Defi's bond shares and their exchange rate to coins. Slashing results in
+// a decrease in the exchange rate, allowing correct calculation of future
+// undelegations without iterating over delegators. When coins are delegated to
+// this defi, the defi is credited with a delegation whose number of
+// bond shares is based on the amount of coins delegated divided by the current
+// exchange rate. Voting power can be calculated as total bonded shares
+// multiplied by exchange rate.
+message Defi {
+  option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.goproto_getters)  = false;
+
+  // operator_address defines the address of the defi's operator; bech encoded in JSON.
+  string              operator_address = 1 [(gogoproto.moretags) = "yaml:\"operator_address\""];
+  
+  // status is the defi status (bonded/unbonding/unbonded).
+  BondStatus status = 2;
+  // tokens define the delegated tokens (incl. self-delegation).
+  string tokens = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  // delegator_shares defines total shares issued to a defi's delegators.
+  string delegator_shares = 4 [
+    (gogoproto.moretags)   = "yaml:\"delegator_shares\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+
+  // description defines the description terms for the defi.
+  Description               description      = 7 [(gogoproto.nullable) = false];
+  // unbonding_height defines, if unbonding, the height at which this defi has begun unbonding.
+  int64                     unbonding_height = 8 [(gogoproto.moretags) = "yaml:\"unbonding_height\""];
+  // unbonding_time defines, if unbonding, the min time for the defi to complete unbonding.
+  google.protobuf.Timestamp unbonding_time   = 9
+      [(gogoproto.nullable) = false, (gogoproto.stdtime) = true, (gogoproto.moretags) = "yaml:\"unbonding_time\""];
+
+  // min_self_delegation is the defi's self declared minimum self delegation.
+  string     min_self_delegation = 11 [
+    (gogoproto.moretags)   = "yaml:\"min_self_delegation\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false
+  ];
+}
+
+// BondStatus is the status of a defi.
+enum BondStatus {
+  option (gogoproto.goproto_enum_prefix) = false;
+
+  // UNSPECIFIED defines an invalid defi status.
+  BOND_STATUS_UNSPECIFIED = 0 [(gogoproto.enumvalue_customname) = "Unspecified"];
+  // UNBONDED defines a defi that is not bonded.
+  BOND_STATUS_UNBONDED = 1 [(gogoproto.enumvalue_customname) = "Unbonded"];
+  // UNBONDING defines a defi that is unbonding.
+  BOND_STATUS_UNBONDING = 2 [(gogoproto.enumvalue_customname) = "Unbonding"];
+  // BONDED defines a defi that is bonded.
+  BOND_STATUS_BONDED = 3 [(gogoproto.enumvalue_customname) = "Bonded"];
+}
+
+// DefiAddresses defines a repeated set of defi addresses.
+message DefiAddresses {
+  option (gogoproto.goproto_stringer) = false;
+  option (gogoproto.stringer)         = true;
+
+  repeated string addresses = 1;
+}
+
+// DDPair is struct that just has a delegator-defi pair with no other data.
+// It is intended to be used as a marshalable pointer. For example, a DVPair can
+// be used to construct the key to getting an UnbondingDelegation from state.
+message DDPair {
+  option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  string delegator_address = 1 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
+  string defi_address = 2 [(gogoproto.moretags) = "yaml:\"defi_address\""];
+}
+
+// DDPairs defines an array of DDPair objects.
+message DDPairs {
+  repeated DDPair pairs = 1 [(gogoproto.nullable) = false];
+}
+
+// Delegation represents the bond with tokens held by an account. It is
+// owned by one delegator, and is associated with the voting power of one
+// defi.
+message Delegation {
+  option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  // delegator_address is the bech32-encoded address of the delegator.
+  string delegator_address = 1 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
+  // defi_address is the bech32-encoded address of the defi.
+  string defi_address = 2 [(gogoproto.moretags) = "yaml:\"defi_address\""];
+  // shares define the delegation shares received.
+  string shares = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}
+
+// UnbondingDelegation stores all of a single delegator's unbonding bonds
+// for a single defi in an time-ordered list.
+message UnbondingDelegation {
+  option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  // delegator_address is the bech32-encoded address of the delegator.
+  string                            delegator_address = 1 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
+  // defi_address is the bech32-encoded address of the defi.
+  string                            defi_address = 2 [(gogoproto.moretags) = "yaml:\"defi_address\""];
+  // entries are the unbonding delegation entries.
+  repeated UnbondingDelegationEntry entries = 3 [(gogoproto.nullable) = false]; // unbonding delegation entries
+}
+
+// UnbondingDelegationEntry defines an unbonding object with relevant metadata.
+message UnbondingDelegationEntry {
+  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  // creation_height is the height which the unbonding took place.
+  int64                     creation_height = 1 [(gogoproto.moretags) = "yaml:\"creation_height\""];
+  // completion_time is the unix time for unbonding completion.
+  google.protobuf.Timestamp completion_time = 2
+      [(gogoproto.nullable) = false, (gogoproto.stdtime) = true, (gogoproto.moretags) = "yaml:\"completion_time\""];
+  // initial_balance defines the tokens initially scheduled to receive at completion.
+  string initial_balance = 3 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"initial_balance\""
+  ];
+  // balance defines the tokens to receive at completion.
+  string balance = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+}
+
+// DelegationResponse is equivalent to Delegation except that it contains a
+// balance in addition to shares which is more suitable for client responses.
+message DelegationResponse {
+  option (gogoproto.equal)            = false;
+  option (gogoproto.goproto_stringer) = false;
+
+  Delegation delegation = 1 [(gogoproto.nullable) = false];
+
+  cosmos.base.v1beta1.Coin balance = 2 [(gogoproto.nullable) = false];
+}
+
+// Params defines the parameters for the defi module.
+message Params {
+  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  // bond_denom defines the bondable coin denomination.
+  string bond_denom         = 1 [(gogoproto.moretags) = "yaml:\"bond_denom\""];
+  // mint_inflation defines the amount coin to be minted
+  cosmos.base.v1beta1.Coin mint_inflation = 2 [(gogoproto.moretags) = "yaml:\"mint_inflation\"", (gogoproto.nullable) = false];
+  //
+  string community_tax                = 3 [
+    (gogoproto.moretags)   = "yaml:\"community_tax\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  // rate is the commission rate charged to delegators, as a fraction.
+  string commission_rate     = 4 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+
+  // rate is the market rate charged to makers, as a fraction.
+  string market_rate     = 5 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+
+  // unbonding_time is the time duration of unbonding.
+  google.protobuf.Duration unbonding_time = 6
+      [(gogoproto.nullable) = false, (gogoproto.stdduration) = true, (gogoproto.moretags) = "yaml:\"unbonding_time\""];
+  // max_defis is the maximum number of defis.
+  uint32 max_defis     = 7 [(gogoproto.moretags) = "yaml:\"max_defis\""];
+  // max_entries is the max entries for unbonding delegation(per pair/trio).
+  uint32 max_entries        = 8 [(gogoproto.moretags) = "yaml:\"max_entries\""];
+  // historical_entries is the number of historical entries to persist.
+  uint32 historical_entries = 9 [(gogoproto.moretags) = "yaml:\"historical_entries\""];
+}
+
+// Pool is used for tracking bonded and not-bonded token supply of the bond
+// denomination.
+message Pool {
+  option (gogoproto.description) = true;
+  option (gogoproto.equal)       = true;
+  string not_bonded_tokens       = 1 [
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.jsontag)    = "not_bonded_tokens",
+    (gogoproto.nullable)   = false
+  ];
+  string bonded_tokens = 2 [
+    (gogoproto.jsontag)    = "bonded_tokens",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false,
+    (gogoproto.moretags)   = "yaml:\"bonded_tokens\""
+  ];
+}
+
+// DefiHistoricalRewards represents historical rewards for a defi.
+// Height is implicit within the store key.
+// Cumulative reward ratio is the sum from the zeroeth period
+// until this period of rewards / tokens, per the spec.
+// The reference count indicates the number of objects
+// which might need to reference this historical entry at any point.
+// ReferenceCount =
+//    number of outstanding delegations which ended the associated period (and
+//    might need to read that record)
+//  + number of slashes which ended the associated period (and might need to
+//  read that record)
+//  + one per defi for the zeroeth period, set on initialization
+message DefiHistoricalRewards {
+  repeated cosmos.base.v1beta1.DecCoin cumulative_reward_ratio = 1 [
+    (gogoproto.moretags)     = "yaml:\"cumulative_reward_ratio\"",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.nullable)     = false
+  ];
+  uint32 reference_count = 2 [(gogoproto.moretags) = "yaml:\"reference_count\""];
+}
+
+// DefiCurrentRewards represents current rewards and current
+// period for a defi kept as a running counter and incremented
+// each block as long as the defi's tokens remain constant.
+message DefiCurrentRewards {
+  repeated cosmos.base.v1beta1.DecCoin rewards = 1
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.nullable) = false];
+  uint64 period = 2;
+}
+
+// DefiOutstandingRewards represents outstanding (un-withdrawn) rewards
+// for a defi inexpensive to track, allows simple sanity checks.
+message DefiOutstandingRewards {
+  repeated cosmos.base.v1beta1.DecCoin rewards = 1 [
+    (gogoproto.moretags)     = "yaml:\"rewards\"",
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.nullable)     = false
+  ];
+}
+
+// DefiAccumulatedCommission represents accumulated commission
+// for a defi kept as a running counter, can be withdrawn at any time.
+message DefiAccumulatedCommission {
+  repeated cosmos.base.v1beta1.DecCoin commission = 1
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.nullable) = false];
+}
+
+// DelegatorStartingInfo represents the starting info for a delegator reward
+// period. It tracks the previous defi period, the delegation's amount of
+// staking token, and the creation height) 
+message DelegatorStartingInfo {
+  uint64 previous_period = 1 [(gogoproto.moretags) = "yaml:\"previous_period\""];
+  string stake           = 2 [
+    (gogoproto.moretags)   = "yaml:\"stake\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec",
+    (gogoproto.nullable)   = false
+  ];
+  uint64 height = 3 [(gogoproto.moretags) = "yaml:\"creation_height\"", (gogoproto.jsontag) = "creation_height"];
+}
+
+// DelegationDelegatorReward represents the properties
+// of a delegator's delegation reward.
+message DelegationDelegatorReward {
+  option (gogoproto.goproto_getters)  = false;
+  option (gogoproto.goproto_stringer) = true;
+
+  string defi_address = 1 [(gogoproto.moretags) = "yaml:\"defi_address\""];
+
+  repeated cosmos.base.v1beta1.DecCoin reward = 2
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.nullable) = false];
+}
+
+// FeePool is the global fee pool for defi.
+message FeePool {
+  repeated cosmos.base.v1beta1.DecCoin community_pool = 1 [
+    (gogoproto.nullable)     = false,
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.moretags)     = "yaml:\"community_pool\""
+  ];
+}

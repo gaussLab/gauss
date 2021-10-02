@@ -1,0 +1,144 @@
+syntax = "proto3";
+package gauss.defi;
+
+option go_package = "github.com/gauss/gauss/v4/x/defi/types";
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gauss/defi/defi.proto";
+
+// DelegatorWithdrawInfo is the address for where distributions rewards are
+// withdrawn to by default this struct is only used at genesis to feed in
+// default withdraw addresses.
+message DelegatorWithdrawInfo {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_address is the address of the delegator.
+  string delegator_address = 1 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
+
+  // withdraw_address is the address to withdraw the delegation rewards to.
+  string withdraw_address = 2 [(gogoproto.moretags) = "yaml:\"withdraw_address\""];
+}
+
+// DefiOutstandingRewardsRecord is used for import/export via genesis json.
+message DefiOutstandingRewardsRecord {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // defi_address is the address of the defi.
+  string defi_address = 1 [(gogoproto.moretags) = "yaml:\"defi_address\""];
+
+  // outstanding_rewards represents the oustanding rewards of a defi.
+  repeated cosmos.base.v1beta1.DecCoin outstanding_rewards = 2 [
+    (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins",
+    (gogoproto.nullable)     = false,
+    (gogoproto.moretags)     = "yaml:\"outstanding_rewards\""
+  ];
+}
+
+// DefiAccumulatedCommissionRecord is used for import / export via genesis
+// json.
+message DefiAccumulatedCommissionRecord {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // defi_address is the address of the defi.
+  string defi_address = 1 [(gogoproto.moretags) = "yaml:\"defi_address\""];
+
+  // accumulated is the accumulated commission of a defi.
+  DefiAccumulatedCommission accumulated = 2
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"accumulated\""];
+}
+
+// DefiHistoricalRewardsRecord is used for import / export via genesis
+// json.
+message DefiHistoricalRewardsRecord {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // defi_address is the address of the defi.
+  string defi_address = 1 [(gogoproto.moretags) = "yaml:\"defi_address\""];
+
+  // period defines the period the historical rewards apply to.
+  uint64 period = 2;
+
+  // rewards defines the historical rewards of a defi.
+  DefiHistoricalRewards rewards = 3 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"rewards\""];
+}
+
+// DefiCurrentRewardsRecord is used for import / export via genesis json.
+message DefiCurrentRewardsRecord {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // defi_address is the address of the defi.
+  string defi_address = 1 [(gogoproto.moretags) = "yaml:\"defi_address\""];
+
+  // rewards defines the current rewards of a defi.
+  DefiCurrentRewards rewards = 2 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"rewards\""];
+}
+
+// DelegatorStartingInfoRecord used for import / export via genesis json.
+message DelegatorStartingInfoRecord {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_address is the address of the delegator.
+  string delegator_address = 1 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
+
+  // defi_address is the address of the defi.
+  string defi_address = 2 [(gogoproto.moretags) = "yaml:\"defi_address\""];
+
+  // starting_info defines the starting info of a delegator.
+  DelegatorStartingInfo starting_info = 3
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"starting_info\""];
+}
+
+
+
+// GenesisState defines the staking module's genesis state.
+message GenesisState {
+  // params defines all the paramaters of related to deposit.
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  // delegations defines the defi set at genesis.
+  repeated Defi defis = 2 [(gogoproto.nullable) = false];
+
+  // delegations defines the delegations active at genesis.
+  repeated Delegation delegations = 3 [(gogoproto.nullable) = false];
+
+  // unbonding_delegations defines the unbonding delegations active at genesis.
+  repeated UnbondingDelegation unbonding_delegations = 4
+      [(gogoproto.moretags) = "yaml:\"unbonding_delegations\"", (gogoproto.nullable) = false];
+
+  // fee_pool defines the delegator withdraw infos at genesis.
+  repeated DelegatorWithdrawInfo delegator_withdraw_infos = 5
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"delegator_withdraw_infos\""];
+
+  // fee_pool defines the outstanding rewards of all defis at genesis.
+  repeated DefiOutstandingRewardsRecord outstanding_rewards = 6
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"outstanding_rewards\""];
+
+  // fee_pool defines the accumulated commisions of all defis at genesis.
+  repeated DefiAccumulatedCommissionRecord defi_accumulated_commissions = 7
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"defi_accumulated_commissions\""];
+
+  // fee_pool defines the historical rewards of all defis at genesis.
+  repeated DefiHistoricalRewardsRecord defi_historical_rewards = 8
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"defi_historical_rewards\""];
+
+  // fee_pool defines the current rewards of all defis at genesis.
+  repeated DefiCurrentRewardsRecord defi_current_rewards = 9
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"defi_current_rewards\""];
+
+  // fee_pool defines the delegator starting infos at genesis.
+  repeated DelegatorStartingInfoRecord delegator_starting_infos = 10 
+      [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"delegator_starting_infos\""];
+
+  // fee_pool defines the fee pool at genesis.
+  FeePool fee_pool = 11 [(gogoproto.nullable) = false, (gogoproto.moretags) = "yaml:\"fee_pool\""];
+
+  bool exported = 12;
+
+}

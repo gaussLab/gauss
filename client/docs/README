@@ -1,0 +1,1 @@
+1. statik -src=./swagger-ui -include=*.png,*.html,*.js,*.css,*.yaml

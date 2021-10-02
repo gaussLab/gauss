@@ -1,0 +1,140 @@
+syntax = "proto3";
+package gauss.orderbook;
+
+import "cosmos/base/v1beta1/coin.proto";
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/any.proto";
+import "gauss/orderbook/orderbook.proto";
+
+option go_package = "github.com/gauss/gauss/v4/x/orderbook/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Parameters queries the orderbook parameters
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/gauss/orderbook/params";
+  }
+
+  // Pools queries all orderbook pools
+  rpc Pools(QueryPoolsRequest) returns (QueryPoolsResponse) {
+    option (google.api.http).get = "/gauss/orderbook/pools";
+  }
+
+  // Pool queries an special pool
+  rpc GetPool(QueryPoolRequest) returns (QueryPoolResponse) {
+    option (google.api.http).get = "/gauss/orderbook/pools/{pool_address}";
+  }
+
+  // TxPairs queries all txpairs
+  rpc TxPairs(QueryPoolTxPairsRequest) returns (QueryPoolTxPairsResponse) {
+    option (google.api.http).get = "/gauss/orderbook/pools/{pool_address}/txpairs";
+  }
+
+  // TxPair queries all txpairs
+  rpc TxPair(QueryPoolTxPairRequest) returns (QueryPoolTxPairResponse) {
+    option (google.api.http).get = "/gauss/orderbook/pools/{pool_address}/txpairs/{tx_pair}";
+  }
+
+  // Orders queries left or right orders of a txpair
+  rpc Orders(QueryPoolTxPairOrdersRequest) returns (QueryPoolTxPairOrdersResponse) {
+    option (google.api.http).get = "/gauss/orderbook/pools/{pool_address}/"
+			"txpairs/{tx_pair}/orders";
+  }
+
+  // Order queries a left or right order of a txpair
+  rpc Order(QueryPoolTxPairOrderRequest) returns (QueryPoolTxPairOrderResponse) {
+    option (google.api.http).get = "/gauss/orderbook/pools/{pool_address}/"
+			"txpairs/{tx_pair}/orders/{order_id}";
+  }
+
+  // TxPairsStats queries all tx-pairs-stats amount in the pool
+  rpc TxPairsStats(QueryTxPairsStatsRequest) returns (QueryTxPairsStatsResponse) {
+    option (google.api.http).get = "/gauss/orderbook/pools/{pool_address}/tx/pairs";
+  }
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPoolRequest is request type for the Query/Pool RPC method.
+message QueryPoolRequest {
+  string pool_address = 1;
+}
+// QueryPoolResponse is response type for the Query/Pool RPC method.
+message QueryPoolResponse {
+  Pool pool = 1 [(gogoproto.nullable) = false]; 
+}
+
+// QueryPoolsRequest is request type for the Query/Pools RPC method.
+message QueryPoolsRequest {}
+// QueryPoolsResponse is response type for the Query/Pools RPC method.
+message QueryPoolsResponse {
+  repeated Pool pools = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPoolTxPairsRequest is request type for the Query/TxPairs RPC method.
+message QueryPoolTxPairsRequest {
+  string pool_address = 1;
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+// QueryPoolTxPairsResponse is response type for the Query/TxPairs RPC method.
+message QueryPoolTxPairsResponse {
+  repeated TxPair tx_pairs = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryPoolTxPairRequest is request type for the Query/TxPair RPC method.
+message QueryPoolTxPairRequest {
+  string pool_address = 1;
+  string tx_pair = 2;
+}
+// QueryPoolTxPairResponse is response type for the Query/TxPair RPC method.
+message QueryPoolTxPairResponse {
+  TxPair tx_pair = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryPoolTxPairOrdersRequest is request type for the Query/Orders RPC method.
+message QueryPoolTxPairOrdersRequest {
+  string pool_address = 1;
+  string tx_pair = 2;
+  bool is_left_order = 3;
+  cosmos.base.query.v1beta1.PageRequest pagination = 4;
+}
+// QueryPoolTxPairOrdersResponse is response type for the Query/Orders RPC method.
+message QueryPoolTxPairOrdersResponse {
+  repeated Order orders = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryPoolTxPairOrderRequest is request type for the Query/Order RPC method.
+message QueryPoolTxPairOrderRequest {
+  string pool_address = 1;
+  string tx_pair = 2;
+  bool is_left_order = 3;
+  uint64 order_id = 4;
+}
+// QueryPoolTxPairOrderResponse is response type for the Query/Order RPC method.
+message QueryPoolTxPairOrderResponse {
+  Order order = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryTxPairsStatsRequest is request type for the Query/TxPairsStats RPC method.
+message QueryTxPairsStatsRequest {
+  string pool_address = 1;
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+// QueryTxPairsStatsResponse is response type for the Query/TxPairsStats RPC method.
+message QueryTxPairsStatsResponse {
+  repeated TxPairStats tx_pairs_stats = 1 [(gogoproto.nullable) = false];
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}

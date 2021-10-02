@@ -1,0 +1,94 @@
+syntax = "proto3";
+package gauss.token;
+
+import "gogoproto/gogo.proto";
+
+option go_package = "github.com/gauss/gauss/v4/x/token/types";
+option (gogoproto.goproto_getters_all) = false;
+
+// Msg defines the oracle Msg service
+service Msg {
+    // IssueToken defines a method for issuing a new token
+    rpc IssueToken(MsgIssueToken) returns (MsgIssueTokenResponse);
+
+    // EditToken defines a method for editing a token
+    rpc EditToken(MsgEditToken) returns (MsgEditTokenResponse);
+
+    // MintToken defines a method for minting some tokens
+    rpc MintToken(MsgMintToken) returns (MsgMintTokenResponse);
+
+    // BurnToken defines a method for burning some tokens
+    rpc BurnToken(MsgBurnToken) returns (MsgBurnTokenResponse);
+
+    // UnLockToken defines a method for burning some tokens
+    rpc UnlockToken(MsgUnlockToken) returns (MsgUnlockTokenResponse);
+
+    // TransferTokenOwner defines a method for minting some tokens
+    rpc TransferTokenOwner(MsgTransferTokenOwner) returns (MsgTransferTokenOwnerResponse);
+}
+
+// MsgIssueToken defines an SDK message for issuing a new token
+message MsgIssueToken {
+    string name = 1;
+    string symbol = 2;
+    string smallest_unit = 3;
+    uint32 decimals = 4;
+    uint64 initial_supply = 5 [ (gogoproto.moretags) = "yaml:\"initial_supply\"" ];
+    uint64 total_supply = 6 [ (gogoproto.moretags) = "yaml:\"total_supply\"" ];
+    bool mintable = 7;
+    bool unlocked = 8;
+    string owner = 9;
+}
+
+// MsgIssueTokenResponse defines the Msg/IssueToken response type
+message MsgIssueTokenResponse {}
+
+// MsgEditToken defines an SDK message for editing a new token
+message MsgEditToken {
+    string symbol = 1;
+    bool mintable = 2;
+    string owner = 3;
+}
+
+// MsgEditTokenResponse defines the Msg/EditToken response type
+message MsgEditTokenResponse {}
+
+// MsgMintToken defines an SDK message for minting a new token
+message MsgMintToken {
+    string symbol = 1;
+    uint64 amount = 2;
+    string to = 3;
+    string owner = 4;
+}
+
+// MsgMintTokenResponse defines the Msg/MintToken response type
+message MsgMintTokenResponse {}
+
+// MsgBurnToken defines an SDK message for burning some tokens
+message MsgBurnToken {
+    string symbol = 1;
+    string sender = 2;
+    uint64 amount = 3;
+}
+
+// MsgBurnTokenResponse defines the Msg/BurnToken response type
+message MsgBurnTokenResponse {}
+
+// MsgUnlockToken defines an SDK message for locking the token
+message MsgUnlockToken {
+    string symbol = 1;
+    string owner = 2;
+}
+
+// MsgUnlockTokenResponse defines the Msg/UnlockToken response type
+message MsgUnlockTokenResponse {}
+
+// MsgTransferTokenOwner defines an SDK message for transferring the token owner
+message MsgTransferTokenOwner {
+    string symbol = 1;
+    string old_owner = 2 [ (gogoproto.moretags) = "yaml:\"old_owner\"" ];
+    string new_owner = 3 [ (gogoproto.moretags) = "yaml:\"new_owner\"" ];
+}
+
+// MsgTransferTokenOwnerResponse defines the Msg/TransferTokenOwner response type
+message MsgTransferTokenOwnerResponse {}

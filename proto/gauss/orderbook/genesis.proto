@@ -1,0 +1,23 @@
+syntax = "proto3";
+package gauss.orderbook;
+
+import "gogoproto/gogo.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gauss/orderbook/orderbook.proto";
+
+option go_package = "github.com/gauss/gauss/v4/x/orderbook/types";
+
+// GenesisState defines the staking module's genesis state.
+message GenesisState {
+  // params defines all the paramaters of related to deposit.
+  Params params = 1 [(gogoproto.nullable) = false];
+
+  repeated Pool pools = 2 [ (gogoproto.nullable) = false ];
+
+  repeated Order orders = 3 [ (gogoproto.nullable) = false ];
+
+  repeated TxPairStats tx_pairs_stats = 4 [ (gogoproto.nullable) = false ];
+
+  bool exported = 5;
+}
+

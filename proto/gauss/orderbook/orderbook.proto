@@ -1,0 +1,78 @@
+syntax = "proto3";
+package gauss.orderbook;
+
+import "gogoproto/gogo.proto";
+import "google/protobuf/any.proto";
+import "google/protobuf/duration.proto";
+import "google/protobuf/timestamp.proto";
+
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "tendermint/types/types.proto";
+
+option go_package = "github.com/gauss/gauss/v4/x/orderbook/types";
+
+// Pool
+message Pool {
+  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_stringer) = false;
+  
+  string address = 1;
+  string delegator_address = 2;
+  string defi_address = 3;
+  cosmos.base.v1beta1.Coin pledge = 4 [ (gogoproto.moretags) = "yaml:\"pledge\"", (gogoproto.nullable) = false ];
+  google.protobuf.Timestamp update_time = 5
+	[(gogoproto.nullable) = false, (gogoproto.stdtime) = true, (gogoproto.moretags) = "yaml:\"update_time\""];
+}
+
+// TxPair
+message TxPair {
+  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  string tx_pair = 1;
+  uint64 orders_total = 2;
+  uint64 left_orders_total = 3;
+  uint64 right_orders_total = 4;
+}
+
+// Order
+message Order {
+  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  string pool_address = 1;
+  string owner_address = 2;
+  cosmos.base.v1beta1.Coin my_asset = 3 [(gogoproto.moretags) = "yaml:\"my_asset\"", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.DecCoin price = 4 [(gogoproto.moretags) = "yaml:\"price\"", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.Coin expect_asset = 5 [(gogoproto.moretags) = "yaml:\"expect_asset\"", (gogoproto.nullable) = false];
+  uint64 nonce = 6 [(gogoproto.moretags) = "yaml:\"nonce\""];
+}
+
+// stats
+message TxPairStats {
+  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  uint64 count = 1 [(gogoproto.moretags) = "yaml:\"count\""];
+  cosmos.base.v1beta1.Coin left_asset = 2 [ (gogoproto.moretags) = "yaml:\"left_asset\"", (gogoproto.nullable) = false ];
+  cosmos.base.v1beta1.Coin right_asset = 3 [ (gogoproto.moretags) = "yaml:\"right_asset\"", (gogoproto.nullable) = false ];
+}
+
+// Params defines the parameters for the orderbook module.
+message Params {
+  option (gogoproto.equal)            = true;
+  option (gogoproto.goproto_stringer) = false;
+
+  uint32 pool_max_count = 1 [(gogoproto.moretags) = "yaml:\"pool_max_count\""];
+  string pool_min_pledge_amount = 2 [ 
+    (gogoproto.moretags) = "yaml:\"pool_min_pledge_amount\"",
+    (gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int",
+    (gogoproto.nullable)   = false];
+  string pool_max_commission_rate = 3 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+
+  cosmos.base.v1beta1.Coin defi_rewards_threshold = 4 [ (gogoproto.moretags) = "yaml:\"defi_rewards_threshold\"", (gogoproto.nullable) = false ];
+  string market_rewards_rate = 5 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string left_rewards_rate = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+  string right_rewards_rate = 7 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Dec", (gogoproto.nullable) = false];
+}

@@ -1,0 +1,106 @@
+syntax = "proto3";
+package gauss.orderbook;
+
+import "google/protobuf/any.proto";
+import "google/protobuf/timestamp.proto";
+import "gogoproto/gogo.proto";
+
+import "cosmos_proto/cosmos.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gauss/orderbook/orderbook.proto";
+
+option go_package = "github.com/gauss/gauss/v4/x/orderbook/types";
+
+// Msg defines the orderbook Msg service.
+service Msg {
+  // CreatePool defines a method for creating a new transaction pool.
+  rpc CreatePool(MsgCreatePool) returns (MsgCreatePoolResponse);
+
+  // AddPledge defines a method for adding some pledge to a pool.
+  rpc AddPledge(MsgAddPledge) returns (MsgAddPledgeResponse);
+
+  // RedeemPledge defines a method for redeaming pledge.
+  rpc RedeemPledge(MsgRedeemPledge) returns (MsgRedeemPledgeResponse);
+
+  // PlaceOrder defines a method for placing a order.
+  rpc PlaceOrder(MsgPlaceOrder) returns (MsgPlaceOrderResponse);
+
+  // RevokeOrder defines a method for revoking a order.
+  rpc RevokeOrder(MsgRevokeOrder) returns (MsgRevokeOrderResponse);
+
+  // AgreeOrderPair defines a method for agreeing a pair orders.
+  rpc AgreeOrderPair(MsgAgreeOrderPair) returns (MsgAgreeOrderPairResponse);
+
+  // AgreeOrderPairWithAmount defines a method for agreeing a pair orders.
+  rpc AgreeOrderPairWithAmount(MsgAgreeOrderPairWithAmount) returns (MsgAgreeOrderPairWithAmountResponse);
+}
+
+message MsgCreatePool {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string owner_address = 1 [(gogoproto.moretags) = "yaml:\"owner_address\""];
+  string delegator_address = 2 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
+  string defi_address = 3 [(gogoproto.moretags) = "yaml:\"defi_address\""];
+  cosmos.base.v1beta1.Coin pledge = 4 [(gogoproto.nullable) = false];
+}
+
+message MsgCreatePoolResponse {}
+
+message MsgAddPledge {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string owner_address = 1 [(gogoproto.moretags) = "yaml:\"owner_address\""];
+  cosmos.base.v1beta1.Coin pledge = 2 [(gogoproto.nullable) = false];
+}
+message MsgAddPledgeResponse {}
+
+message MsgRedeemPledge {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string owner_address = 1 [(gogoproto.moretags) = "yaml:\"owner_address\""];
+  cosmos.base.v1beta1.Coin pledge = 2 [(gogoproto.nullable) = false];
+}
+message MsgRedeemPledgeResponse {}
+
+message MsgPlaceOrder {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string pool_address = 1 [(gogoproto.moretags) = "yaml:\"pool_address\""];
+  string owner_address = 2 [(gogoproto.moretags) = "yaml:\"owner_address\""];
+  cosmos.base.v1beta1.Coin my_asset = 3 [(gogoproto.nullable) = false];
+  cosmos.base.v1beta1.DecCoin price = 4 [(gogoproto.nullable) = false];
+  // string expect_asset = 5 [(gogoproto.moretags) = "yaml:\"expect_asset\""];
+  cosmos.base.v1beta1.Coin expect_asset = 5 [(gogoproto.nullable) = false];
+  uint64 order_id = 6;
+}
+message MsgPlaceOrderResponse {}
+
+message MsgRevokeOrder {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string pool_address = 1 [(gogoproto.moretags) = "yaml:\"pool_address\""];
+  string delegator_address = 2 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
+  string tx_pair = 3;
+  uint64 order_id = 4;
+  bool   is_left_order = 5;
+}
+message MsgRevokeOrderResponse {}
+
+message MsgAgreeOrderPair {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  string pool_address = 1 [(gogoproto.moretags) = "yaml:\"pool_address\""];
+  string delegator_address = 2 [(gogoproto.moretags) = "yaml:\"delegator_address\""];
+  string tx_pair = 3;
+  uint64 left_order_id = 4;
+  uint64 right_order_id = 5;
+  string amount = 6 [(gogoproto.customtype) = "github.com/cosmos/cosmos-sdk/types.Int", (gogoproto.nullable) = false];
+  cosmos.base.v1beta1.DecCoin price = 7 [(gogoproto.nullable) = false];
+}
+message MsgAgreeOrderPairResponse {}

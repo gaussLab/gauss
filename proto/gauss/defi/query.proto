@@ -1,0 +1,474 @@
+syntax = "proto3";
+package gauss.defi;
+
+import "cosmos/base/query/v1beta1/pagination.proto";
+import "gogoproto/gogo.proto";
+import "google/api/annotations.proto";
+import "cosmos/base/v1beta1/coin.proto";
+import "gauss/defi/defi.proto";
+
+option go_package = "github.com/gauss/gauss/v4/x/defi/types";
+
+// Query defines the gRPC querier service.
+service Query {
+  // Defi queries all defis that match the given status 
+  rpc Defis(QueryDefisRequest) returns (QueryDefisResponse) {
+    option (google.api.http).get = "/gauss/defi/defis";
+  }
+
+  // Defi queries defi info for given defi address.
+  rpc Defi(QueryDefiRequest) returns (QueryDefiResponse) {
+    option (google.api.http).get = "/gauss/defi/defis/{defi_address}";
+  }
+
+  // DefiDelegations queries delegate info for given defi.
+  rpc DefiDelegations(QueryDefiDelegationsRequest) returns (QueryDefiDelegationsResponse) {
+    option (google.api.http).get = "/gauss/defi/defis/{defi_address}/delegations";
+  }
+
+  // DefiUnbondingDelegations queries unbonding delegations of a defi.
+  rpc DefiUnbondingDelegations(QueryDefiUnbondingDelegationsRequest)
+      returns (QueryDefiUnbondingDelegationsResponse) {
+    option (google.api.http).get = "/gauss/defi/defis/{defi_address}/unbonding_delegations";
+  }
+
+  // DefiCommission queries accumulated commission for a defi.
+  rpc DefiCommission(QueryDefiCommissionRequest) returns (QueryDefiCommissionResponse) {
+    option (google.api.http).get = "/gauss/defi/defis/"
+                                   "{defi_address}/commission";
+  }
+
+  // DefiOutstandingRewards queries rewards of a defi address.
+  rpc DefiOutstandingRewards(QueryDefiOutstandingRewardsRequest)
+      returns (QueryDefiOutstandingRewardsResponse) {
+    option (google.api.http).get = "/gauss/defi/defis/{defi_address}/outstanding_rewards";
+  }
+
+  // Delegation queries delegate info for given defi delegator pair.
+  rpc DefiDelegation(QueryDelegationRequest) returns (QueryDelegationResponse) {
+    option (google.api.http).get = "/gauss/defi/defis/{defi_address}/delegations/"
+                                   "{delegator_address}";
+  }
+
+  // UnbondingDelegation queries unbonding info for given defi delegator
+  // pair.
+  rpc DefiUnbondingDelegation(QueryUnbondingDelegationRequest) returns (QueryUnbondingDelegationResponse) {
+    option (google.api.http).get = "/gauss/defi/defis/{defi_address}/delegations/"
+                                   "{delegator_address}/unbonding_delegation";
+  }
+
+  // DelegatorDelegations queries all delegations of a given delegator address.
+  rpc DefiDelegatorDelegations(QueryDelegatorDelegationsRequest) returns (QueryDelegatorDelegationsResponse) {
+    option (google.api.http).get = "/gauss/defi/delegations/{delegator_address}";
+  }
+
+  // DelegatorUnbondingDelegations queries all unbonding delegations of a given
+  // delegator address.
+  rpc DefiDelegatorUnbondingDelegations(QueryDelegatorUnbondingDelegationsRequest)
+      returns (QueryDelegatorUnbondingDelegationsResponse) {
+    option (google.api.http).get = "/gauss/defi/delegators/"
+                                   "{delegator_address}/unbonding_delegations";
+  }
+
+  // DelegatorDefis queries all defis info for given delegator
+  // address.
+  rpc DelegatorDefis(QueryDelegatorDefisRequest) returns (QueryDelegatorDefisResponse) {
+    option (google.api.http).get = "/gauss/defi/delegators/{delegator_address}/defis";
+  }
+
+  // DelegatorDefi queries defi info for given delegator defi
+  // pair.
+  rpc DelegatorDefi(QueryDelegatorDefiRequest) returns (QueryDelegatorDefiResponse) {
+    option (google.api.http).get = "/gauss/defi/delegators/{delegator_address}/defis/"
+                                   "{defi_address}";
+  }
+
+  // DelegationRewards queries the total rewards accrued by a delegation.
+  rpc DefiDelegationRewards(QueryDelegationRewardsRequest) returns (QueryDelegationRewardsResponse) {
+    option (google.api.http).get = "/gauss/defi/delegators/{delegator_address}/rewards/"
+                                   "{defi_address}";
+  }
+
+  // DelegationTotalRewards queries the total rewards accrued by a each
+  // defi.
+  rpc DefiDelegationTotalRewards(QueryDelegationTotalRewardsRequest) returns (QueryDelegationTotalRewardsResponse) {
+    option (google.api.http).get = "/gauss/defi/delegators/{delegator_address}/rewards";
+  }
+
+  // DelegatorDefisEx queries the defis of a delegator.
+  rpc DelegatorDefisEx(QueryDelegatorDefisExRequest) returns (QueryDelegatorDefisExResponse) {
+    option (google.api.http).get = "/gauss/defi/delegators/"
+                                   "{delegator_address}/defis/extern";
+  }
+
+  // DelegatorWithdrawAddress queries withdraw address of a delegator.
+  rpc DefiDelegatorWithdrawAddress(QueryDelegatorWithdrawAddressRequest) returns (QueryDelegatorWithdrawAddressResponse) {
+    option (google.api.http).get = "/gauss/defi/delegators/"
+                                   "{delegator_address}/withdraw_address";
+  }
+
+  // HistoricalInfo queries the historical info for given height.
+  rpc DefiHistoricalInfo(QueryHistoricalInfoRequest) returns (QueryHistoricalInfoResponse) {
+    option (google.api.http).get = "/gauss/defi/delegators/historical_info/{height}";
+  }
+
+  // Pool queries the pool info.
+  rpc DefiPool(QueryPoolRequest) returns (QueryPoolResponse) {
+    option (google.api.http).get = "/gauss/defi/delegators/pool";
+  }
+
+  // Parameters queries the staking parameters.
+  rpc Params(QueryParamsRequest) returns (QueryParamsResponse) {
+    option (google.api.http).get = "/gauss/defi/params";
+  }
+
+  // CommunityPool queries the community pool coins.
+  rpc DefiCommunityPool(QueryCommunityPoolRequest) returns (QueryCommunityPoolResponse) {
+    option (google.api.http).get = "/gauss/defi/community_pool";
+  }
+}
+
+// QueryDefisRequest is request type for Query/Defis RPC method.
+message QueryDefisRequest {
+  // status enables to query for defis matching a given status.
+  string status = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryDefisResponse is response type for the Query/Defis RPC method
+message QueryDefisResponse {
+  // defis contains all the queried defis.
+  repeated Defi defis = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryDefiRequest is response type for the Query/Defi RPC method
+message QueryDefiRequest {
+  // defi_address defines the defi address to query for.
+  string defi_address = 1;
+}
+
+// QueryDefiResponse is response type for the Query/Defi RPC method
+message QueryDefiResponse {
+  // defi defines the the defi info.
+  Defi defi = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDefiDelegationsRequest is request type for the
+// Query/DefiDelegations RPC method
+message QueryDefiDelegationsRequest {
+  // defi_address defines the defi address to query for.
+  string defi_address = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryDefiDelegationsResponse is response type for the
+// Query/DefiDelegations RPC method
+message QueryDefiDelegationsResponse {
+  repeated DelegationResponse delegation_responses = 1
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "DelegationResponses"];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryDefiUnbondingDelegationsRequest is required type for the
+// Query/DefiUnbondingDelegations RPC method
+message QueryDefiUnbondingDelegationsRequest {
+  // defi_addr defines the defi address to query for.
+  string defi_address = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryDefiUnbondingDelegationsResponse is response type for the
+// Query/DefiUnbondingDelegations RPC method.
+message QueryDefiUnbondingDelegationsResponse {
+  repeated UnbondingDelegation unbonding_responses = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// DefiOutstandingRewardsRequest is the request type for the
+// Query/DefiOutstandingRewards RPC method.
+message QueryDefiOutstandingRewardsRequest {
+  // defi_address defines the defi address to query for.
+  string defi_address = 1;
+}
+
+// QueryDefiOutstandingRewardsResponse is the response type for the
+// Query/DefiOutstandingRewards RPC method.
+message QueryDefiOutstandingRewardsResponse {
+  DefiOutstandingRewards rewards = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDefiCommissionRequest is the request type for the
+// Query/DefiCommission RPC method
+message QueryDefiCommissionRequest {
+  // defi_address defines the defi address to query for.
+  string defi_address = 1;
+}
+
+// QueryDefiCommissionResponse is the response type for the
+// Query/DefiCommission RPC method
+message QueryDefiCommissionResponse {
+  // commission defines the commision the defi received.
+  DefiAccumulatedCommission commission = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDelegationRequest is request type for the Query/Delegation RPC method.
+message QueryDelegationRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_addr defines the delegator address to query for.
+  string delegator_address = 1;
+
+  // defi_addr defines the defi address to query for.
+  string defi_address = 2;
+}
+
+// QueryDelegationResponse is response type for the Query/Delegation RPC method.
+message QueryDelegationResponse {
+  // delegation_responses defines the delegation info of a delegation.
+  DelegationResponse delegation_response = 1;
+}
+
+// QueryUnbondingDelegationRequest is request type for the
+// Query/UnbondingDelegation RPC method.
+message QueryUnbondingDelegationRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_addr defines the delegator address to query for.
+  string delegator_address = 1;
+
+  // defi_addr defines the defi address to query for.
+  string defi_address = 2;
+}
+
+// QueryDelegationResponse is response type for the Query/UnbondingDelegation
+// RPC method.
+message QueryUnbondingDelegationResponse {
+  // unbond defines the unbonding information of a delegation.
+  UnbondingDelegation unbond = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDelegatorDelegationsRequest is request type for the
+// Query/DelegatorDelegations RPC method.
+message QueryDelegatorDelegationsRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_addr defines the delegator address to query for.
+  string delegator_address = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryDelegatorDelegationsResponse is response type for the
+// Query/DelegatorDelegations RPC method.
+message QueryDelegatorDelegationsResponse {
+  // delegation_responses defines all the delegations' info of a delegator.
+  repeated DelegationResponse delegation_responses = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryDelegatorUnbondingDelegationsRequest is request type for the
+// Query/DelegatorUnbondingDelegations RPC method.
+message QueryDelegatorUnbondingDelegationsRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_addr defines the delegator address to query for.
+  string delegator_address = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryUnbondingDelegatorDelegationsResponse is response type for the
+// Query/UnbondingDelegatorDelegations RPC method.
+message QueryDelegatorUnbondingDelegationsResponse {
+  repeated UnbondingDelegation unbonding_responses = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryDelegatorDefisRequest is request type for the
+// Query/DelegatorDefis RPC method.
+message QueryDelegatorDefisRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_addr defines the delegator address to query for.
+  string delegator_address = 1;
+
+  // pagination defines an optional pagination for the request.
+  cosmos.base.query.v1beta1.PageRequest pagination = 2;
+}
+
+// QueryDelegatorDefisResponse is response type for the
+// Query/DelegatorDefis RPC method.
+message QueryDelegatorDefisResponse {
+  // defis defines the the defis' info of a delegator.
+  repeated Defi defis = 1 [(gogoproto.nullable) = false];
+
+  // pagination defines the pagination in the response.
+  cosmos.base.query.v1beta1.PageResponse pagination = 2;
+}
+
+// QueryDelegatorDefiRequest is request type for the
+// Query/DelegatorDefi RPC method.
+message QueryDelegatorDefiRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_addr defines the delegator address to query for.
+  string delegator_address = 1;
+
+  // defi_addr defines the defi address to query for.
+  string defi_address = 2;
+}
+
+// QueryDelegatorDefiResponse response type for the
+// Query/DelegatorDefi RPC method.
+message QueryDelegatorDefiResponse {
+  // defi defines the the defi info.
+  Defi defi = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryDelegationRewardsRequest is the request type for the
+// Query/DelegationRewards RPC method.
+message QueryDelegationRewardsRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_address defines the delegator address to query for.
+  string delegator_address = 1;
+  // defi_address defines the defi address to query for.
+  string defi_address = 2;
+}
+
+// QueryDelegationRewardsResponse is the response type for the
+// Query/DelegationRewards RPC method.
+message QueryDelegationRewardsResponse {
+  // rewards defines the rewards accrued by a delegation.
+  repeated cosmos.base.v1beta1.DecCoin rewards = 1
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"];
+}
+
+// QueryDelegationTotalRewardsRequest is the request type for the
+// Query/DelegationTotalRewards RPC method.
+message QueryDelegationTotalRewardsRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+  // delegator_address defines the delegator address to query for.
+  string delegator_address = 1;
+}
+
+// QueryDelegationTotalRewardsResponse is the response type for the
+// Query/DelegationTotalRewards RPC method.
+message QueryDelegationTotalRewardsResponse {
+  // rewards defines all the rewards accrued by a delegator.
+  repeated DelegationDelegatorReward rewards = 1 [(gogoproto.nullable) = false];
+  // total defines the sum of all the rewards.
+  repeated cosmos.base.v1beta1.DecCoin total = 2
+      [(gogoproto.nullable) = false, (gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins"];
+}
+
+// QueryDelegatorDefisExRequest is the request type for the
+// Query/DelegatorDefisEx RPC method.
+message QueryDelegatorDefisExRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_address defines the delegator address to query for.
+  string delegator_address = 1;
+}
+
+// QueryDelegatorDefisExResponse is the response type for the
+// Query/DelegatorDefisEx RPC method.
+message QueryDelegatorDefisExResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // defis defines the defis a delegator is delegating for.
+  repeated string defis = 1;
+}
+
+// QueryDelegatorWithdrawAddressRequest is the request type for the
+// Query/DelegatorWithdrawAddress RPC method.
+message QueryDelegatorWithdrawAddressRequest {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // delegator_address defines the delegator address to query for.
+  string delegator_address = 1;
+}
+
+// QueryDelegatorWithdrawAddressResponse is the response type for the
+// Query/DelegatorWithdrawAddress RPC method.
+message QueryDelegatorWithdrawAddressResponse {
+  option (gogoproto.equal)           = false;
+  option (gogoproto.goproto_getters) = false;
+
+  // withdraw_address defines the delegator address to query for.
+  string withdraw_address = 1;
+}
+
+// QueryHistoricalInfoRequest is request type for the Query/HistoricalInfo RPC
+// method.
+message QueryHistoricalInfoRequest {
+  // height defines at which height to query the historical info.
+  int64 height = 1;
+}
+
+// QueryHistoricalInfoResponse is response type for the Query/HistoricalInfo RPC
+// method.
+message QueryHistoricalInfoResponse {
+  // hist defines the historical info at the given height.
+  HistoricalInfo hist = 1;
+}
+
+// QueryPoolRequest is request type for the Query/Pool RPC method.
+message QueryPoolRequest {}
+
+// QueryPoolResponse is response type for the Query/Pool RPC method.
+message QueryPoolResponse {
+  // pool defines the pool info.
+  Pool pool = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryParamsRequest is request type for the Query/Params RPC method.
+message QueryParamsRequest {}
+
+// QueryParamsResponse is response type for the Query/Params RPC method.
+message QueryParamsResponse {
+  // params holds all the parameters of this module.
+  Params params = 1 [(gogoproto.nullable) = false];
+}
+
+// QueryCommunityPoolRequest is the request type for the Query/CommunityPool RPC
+// method.
+message QueryCommunityPoolRequest {}
+
+// QueryCommunityPoolResponse is the response type for the Query/CommunityPool
+// RPC method.
+message QueryCommunityPoolResponse {
+  // pool defines community pool's coins.
+  repeated cosmos.base.v1beta1.DecCoin pool = 1
+      [(gogoproto.castrepeated) = "github.com/cosmos/cosmos-sdk/types.DecCoins", (gogoproto.nullable) = false];
+}

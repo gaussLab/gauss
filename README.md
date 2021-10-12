@@ -8,7 +8,7 @@ To join the mainnet, follow [this guide.](https://github.com/gaussLab/mainnet)
 
 ## Documentation
 
-Documentation for the Gauss gateway lives at [gauss-documentation.readthedocs.io]
+Documentation for the Gauss gateway lives at [this.](https://gauss-documentation.readthedocs.io)
 
 ## Resources
 

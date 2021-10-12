@@ -12,8 +12,8 @@ Documentation for the Gauss gateway lives at [gauss-documentation.readthedocs.io
 
 ## Resources
 
-* [Explorer]: https://www.gaussscan.io
-* [Crosschain Explorer]: https://cross.gaussscan.io
+* Explorer: [https://www.gaussscan.io](https://www.gaussscan.io)
+* Crosschain Explorer: [https://cross.gaussscan.io](https://cross.gaussscan.io)
 
 ## Talk to us!
 
